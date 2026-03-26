@@ -27,7 +27,13 @@
     return statistics;
   });
   let locale = $derived(appLocale.current);
-  const LTitle = $derived({ ko_kr: '젬 옵션', en_us: 'Astrogem Options' }[locale]);
+  const LTitle = $derived(
+    {
+      ko_kr: '젬 옵션',
+      en_us: 'Astrogem Options',
+      zh_cn: '护石选项',
+    }[locale]
+  );
 </script>
 
 <div class="root">
