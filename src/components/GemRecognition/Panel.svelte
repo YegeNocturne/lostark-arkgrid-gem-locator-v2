@@ -71,6 +71,7 @@
 
   let _captureController: CaptureController | null = null;
   let _prevGem: string | null = null;
+  const SAME_COUNT_THRESHOLD = 6;
 
   async function getCaptureController() {
     if (_captureController) return _captureController;
@@ -78,7 +79,33 @@
     return _captureController;
   }
 
+  function computeEstimatedSameCount(
+    totalGems: ArkGridGem[],
+    currentGems: ArkGridGem[],
+    foundIndices: number[],
+    direction: 1 | -1 // 1: 정방향(첫 젬 기준), -1: 역방향(마지막 젬 기준)
+  ): number {
+    const sameCountList: number[] = [];
+    for (const foundIndex of foundIndices) {
+      let sameCount = 1;
+      for (let i = 1; i < currentGems.length; i++) {
+        const totalIdx = direction === 1 ? foundIndex + i : foundIndex - i;
+        const curIdx = direction === 1 ? i : 8 - i;
+        if (totalIdx < 0 || totalIdx >= totalGems.length) break;
+        if (isSameArkGridGem(totalGems[totalIdx], currentGems[curIdx])) {
+          sameCount += 1;
+        } else {
+          break;
+        }
+      }
+      sameCountList.push(sameCount);
+    }
+    sameCountList.sort((a, b) => b - a);
+    return sameCountList[0] ?? 0; // 후보가 없으면 0
+  }
+
   function applyCurrentGems(gemAttr: ArkGridAttr, currentGems: ArkGridGem[]) {
+    // 이전에 처리한 프레임 생략
     const gemKey = JSON.stringify(currentGems);
     if (_prevGem === null) _prevGem = gemKey;
     else {
@@ -88,95 +115,107 @@
         _prevGem = gemKey;
       }
     }
+    // GemAttr 결정
     const totalGems = gemAttr == '질서' ? totalOrderGems : totalChaosGems;
+    if (totalGems.length >= 100) return; // 안전장치
+
+    // ================
     // 젬 추가
-    const SAME_COUNT_THRESHOLD = 4;
-    if (totalGems.length == 0 && currentGems.length > 0) {
-      // 현재 젬이 없다면 화면에 있는 젬으로 갈아치움
-      // 이땐 개수가 꼭 9개가 아니어도 됨 (애초에 젬을 적게 깎은 사람들)
+    // ================
+
+    // 알고있는 젬 목록이 아예 없는 경우 그대로 반영
+    // ps. 이땐 개수가 꼭 9개가 아니어도 됨 (애초에 젬을 적게 깎은 사람들)
+    if (totalGems.length == 0) {
       for (const gem of currentGems) {
         totalGems.push(gem);
       }
       gemListElem?.selectTab(gemAttr == '질서' ? 0 : 1);
       gemListElem?.scroll('bottom');
-      // console.log($state.snapshot(totalGems));
-    } else {
-      if (currentGems.length == 9 && totalGems.length < 100) {
-        // 정상적으로 9개의 젬이 모두 인식된 경우에만 진행
+      return;
+    }
 
-        // Q. 내 화면의 첫 젬이 전체 젬의 어디에 위치하는가?
-        // 동일한 옵션의 젬이 2개 이상 있는 경우를 위해 후보를 모두 저장함
-        let foundIndices: number[] = [];
-        for (let i = 0; i < totalGems.length; i++) {
-          if (isSameArkGridGem(totalGems[i], currentGems[0])) {
-            foundIndices.push(i);
-          }
-        }
-        // 아까 조사한 모든 index에 대해서
-        // 현재 화면 중 몇 개의 젬이 이미 알고있는 젬인지 연속적으로 확인
-        for (let foundIndex of foundIndices) {
-          let sameCount = 1;
-          for (let i = 1; i < currentGems.length; i++) {
-            if (foundIndex + i >= totalGems.length) break;
-            if (isSameArkGridGem(totalGems[foundIndex + i], currentGems[i])) {
-              sameCount += 1;
-            } else {
-              break;
-            }
-          }
-          // 현재 화면에 있는 모든 젬이 이미 연속적으로 추가된 젬인 경우, 그냥 넘어감
-          if (sameCount == 9) continue;
+    // 이제 젬이 있는데 새로 추가하는 경우
 
-          // 스크롤을 너무 빠르게 내린 경우를 제외하기 위해서
-          // 내 화면에 있는 젬 중 최소한 4개는 이미 알고 있는 경우에만 수행
-          // 추가로 동일한 옵션의 젬을 오판정한 index인 경우 sameCount = 1이라서 걸러야 함
-          if (sameCount >= SAME_COUNT_THRESHOLD) {
-            // 내 화면의 sameCount부터 끝에 있는 젬들까지 추가 대상임
-            for (let i = sameCount; i < 9; i++) {
-              totalGems.push(currentGems[i]);
-              // console.log('추가:', currentGems[i]);
-            }
-            gemListElem?.selectTab(gemAttr == '질서' ? 0 : 1);
-            gemListElem?.scroll('bottom');
-            // console.log($state.snapshot(totalGems));
-          }
-        }
+    // 정상적으로 9개의 젬이 모두 인식된 경우에만 진행
+    if (currentGems.length !== 9) return;
 
-        if (foundIndices.length == 0) {
-          // 만약 내 화면의 첫 젬이 아예 없다면 거꾸로 스크롤하는 것이라고 가정
-          // 마지막 젬이 알고 있는지 확인
-          for (let i = 0; i < totalGems.length; i++) {
-            if (isSameArkGridGem(totalGems[i], currentGems[8])) {
-              foundIndices.push(i);
-            }
-          }
-          // 아까 조사한 모든 index에 대해서
-          // 현재 화면 중 몇 개의 젬이 이미 알고있는 젬인지 연속적으로 확인
-          for (let foundIndex of foundIndices) {
-            let sameCount = 1;
-            for (let i = 1; i < currentGems.length; i++) {
-              if (foundIndex - i < 0) break;
-              if (isSameArkGridGem(totalGems[foundIndex - i], currentGems[8 - i])) {
-                sameCount += 1;
-              } else {
-                break;
-              }
-            }
-            if (sameCount == 9) continue;
-            if (sameCount >= SAME_COUNT_THRESHOLD) {
-              // 내 화면의 0부터 9-sameCount-1에 있는 젬들까지 추가 대상임
-              for (let i = 9 - sameCount - 1; i >= 0; i--) {
-                totalGems.unshift(currentGems[i]);
-                // console.log('추가:', currentGems[i]);
-              }
-              gemListElem?.selectTab(gemAttr == '질서' ? 0 : 1);
-              gemListElem?.scroll('top');
-              // console.log($state.snapshot(totalGems));
-            }
-          }
-        }
+    // ================
+    // 스크롤 방향 유추
+    // ================
+
+    // 문제: 우린 스크롤을 캡쳐하기 힘들어서 새로 인식된 젬 목록만 받아온다.
+    const foundForwardIndices: number[] = [];
+    const foundBackwardIndices: number[] = [];
+    let searchDirection: 1 | -1 = 1;
+
+    // 스크롤을 아래로 했다고 가정: 이번 프레임의 최상단 젬이 기본 젬 목록에서 어디에 위치하는지 확인
+    for (let i = 0; i < totalGems.length; i++) {
+      if (isSameArkGridGem(totalGems[i], currentGems[0])) {
+        foundForwardIndices.push(i);
       }
     }
+    // 스크롤을 위로 했다고 가정: 이번 프레임의 최하단 젬이 기본 젬 목록에서 어디에 위치하는지 확인
+    for (let i = 0; i < totalGems.length; i++) {
+      if (isSameArkGridGem(totalGems[i], currentGems[8])) {
+        foundBackwardIndices.push(i);
+      }
+    }
+
+    // 이번 프레임의 첫 젬과 마지막 젬이 모두 내 화면의 어디에 위치하는지 모르는 경우: 유추할 수 없음
+    if (foundForwardIndices.length == 0 && foundBackwardIndices.length == 0) return;
+
+    // 사람들은 천천히 스크롤할 거기 때문에, 가장 변동이 적은 걸 찾는다
+    // 새로운 프레임의 젬 목록 중, 기존 젬 목록에서 연속적으로 겹치는 부분이 가장 많은 것을 찾는다
+    const estimatedForwardSameCount = computeEstimatedSameCount(
+      totalGems,
+      currentGems,
+      foundForwardIndices,
+      1
+    );
+    const estimatedBackwardSameCount = computeEstimatedSameCount(
+      totalGems,
+      currentGems,
+      foundBackwardIndices,
+      -1
+    );
+    // console.log(estimatedForwardSameCount, estimatedBackwardSameCount);
+
+    // 이번 프레임의 모든 젬이 이미 현재 아는 젬 목록의 subset이면 탈출
+    // 하나가 9면 다른 값도 9겠지만 혹시 모르니
+    if (estimatedForwardSameCount == 9 || estimatedBackwardSameCount == 9) return;
+
+    let estimatedSameCount = 0;
+    // 사람들은 대부분 아래로 스크롤 하기 때문에, 둘 중 가장 변화가 적은 것으로 유추하고 같으면 정방향 우선
+    if (estimatedForwardSameCount >= estimatedBackwardSameCount) {
+      estimatedSameCount = estimatedForwardSameCount;
+      searchDirection = 1;
+    } else {
+      estimatedSameCount = estimatedBackwardSameCount;
+      searchDirection = -1;
+    }
+
+    // 스크롤을 너무 빠르게 내린 경우를 제외하기 위해서
+    // 내 화면에 있는 젬 중 최소한 6개는 이미 알고 있는 경우에만 수행
+    if (estimatedSameCount < SAME_COUNT_THRESHOLD) return;
+
+    if (searchDirection == 1) {
+      // 정방향
+      // 현재 프레임 젬 목록의 sameCount번째 젬부터 끝에 있는 젬들까지 추가 대상임
+      for (let i = estimatedSameCount; i < 9; i++) {
+        totalGems.push(currentGems[i]);
+      }
+    } else {
+      // 역방향
+      // 현재 프레임의 0번째 젬부터 (9-sameCount)개만큼 기존 목록 앞에 추가
+      for (let i = 9 - estimatedSameCount - 1; i >= 0; i--) {
+        totalGems.unshift(currentGems[i]);
+      }
+    }
+
+    // 적절하게 scroll
+    gemListElem?.selectTab(gemAttr == '질서' ? 0 : 1);
+    gemListElem?.scroll(searchDirection == 1 ? 'bottom' : 'top');
+    // console.log($state.snapshot(totalGems));
   }
 
   async function startGemCapture() {
