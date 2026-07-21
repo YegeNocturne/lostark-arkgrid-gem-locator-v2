@@ -1,5 +1,7 @@
 # 아크 그리드 전투력 최적화
 
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/Zk4K3xt9ub)
+
 ## Introduction
 
 이 프로젝트는 로스트아크 아크 그리드 시스템에서 사용자가 가진 젬을 코어에 장착했을 때 전투력을 최대화하는 최적의 조합을 탐색하는 계산 사이트입니다.
