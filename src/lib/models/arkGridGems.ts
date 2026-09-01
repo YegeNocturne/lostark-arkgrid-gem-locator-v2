@@ -22,7 +22,7 @@ export const ArkGridGemOptionTypes = {
     name: {
       ko_kr: '추가 피해',
       en_us: 'Additional Damage',
-      zh_cn: '追加伤害',
+      zh_cn: '额外伤害',
     },
   },
   낙인력: {
@@ -36,14 +36,14 @@ export const ArkGridGemOptionTypes = {
     name: {
       ko_kr: '아군 공격 강화',
       en_us: 'Ally Attack Enh.',
-      zh_cn: '友军攻击强化',
+      zh_cn: '我军攻击强化',
     },
   },
   '아군 피해 강화': {
     name: {
       ko_kr: '아군 피해 강화',
       en_us: 'Ally Damage Enh.',
-      zh_cn: '友军伤害强化',
+      zh_cn: '我军伤害强化',
     },
   },
 } as const satisfies Record<string, ArkGridGemOptionType>;
@@ -62,7 +62,7 @@ export const ArkGridGemSpecs = {
     name: {
       ko_kr: '질서의 젬 : 안정',
       en_us: 'Order Astrogem: Stability',
-      zh_cn: '秩序护石：稳定',
+      zh_cn: '秩序星石：稳定',
     },
     req: 8,
     availableOptions: ['공격력', '추가 피해', '낙인력', '아군 피해 강화'],
@@ -72,7 +72,7 @@ export const ArkGridGemSpecs = {
     name: {
       ko_kr: '질서의 젬 : 견고',
       en_us: 'Order Astrogem: Solidity',
-      zh_cn: '秩序护石：坚固',
+      zh_cn: '秩序星石：坚固',
     },
     req: 9,
     availableOptions: ['공격력', '보스 피해', '아군 피해 강화', '아군 공격 강화'],
@@ -82,7 +82,7 @@ export const ArkGridGemSpecs = {
     name: {
       ko_kr: '질서의 젬 : 불변',
       en_us: 'Order Astrogem: Immutability',
-      zh_cn: '秩序护石：永恒',
+      zh_cn: '秩序星石：不变',
     },
     req: 10,
     availableOptions: ['추가 피해', '보스 피해', '낙인력', '아군 공격 강화'],
@@ -92,7 +92,7 @@ export const ArkGridGemSpecs = {
     name: {
       ko_kr: '혼돈의 젬 : 침식',
       en_us: 'Chaos Astrogem: Corrosion',
-      zh_cn: '混沌护石：侵蚀',
+      zh_cn: '混沌星石：侵蚀',
     },
     req: 8,
     availableOptions: ['공격력', '추가 피해', '낙인력', '아군 피해 강화'],
@@ -102,7 +102,7 @@ export const ArkGridGemSpecs = {
     name: {
       ko_kr: '혼돈의 젬 : 왜곡',
       en_us: 'Chaos Astrogem: Distortion',
-      zh_cn: '混沌护石：扭曲',
+      zh_cn: '混沌星石：异形',
     },
     req: 9,
     availableOptions: ['공격력', '보스 피해', '아군 피해 강화', '아군 공격 강화'],
@@ -112,7 +112,7 @@ export const ArkGridGemSpecs = {
     name: {
       ko_kr: '혼돈의 젬 : 붕괴',
       en_us: 'Chaos Astrogem: Destruction',
-      zh_cn: '混沌护石：崩溃',
+      zh_cn: '混沌星石：崩溃',
     },
     req: 10,
     availableOptions: ['추가 피해', '보스 피해', '낙인력', '아군 공격 강화'],
