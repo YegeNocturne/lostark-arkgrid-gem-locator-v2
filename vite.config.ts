@@ -4,7 +4,8 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [svelte()],
-  base: '/lostark-arkgrid-gem-locator-v2/',
+  // Cloudflare Pages 部署在根路径(CF_PAGES=1)，GitHub Pages 使用仓库子路径
+  base: process.env.CF_PAGES ? '/' : '/lostark-arkgrid-gem-locator-v2/',
   worker: {
     format: 'es',
     // plugins: () => [svelte()],
