@@ -4,9 +4,18 @@
 
 ## 关于本分支
 
-这个分支是在原项目基础上的增强版本，主要改进包括：
+本分支基于 [原始项目](https://github.com/Airplaner/lostark-arkgrid-gem-locator-v2) 及其[中文支持版](https://github.com/symnetry/lostark-arkgrid-gem-locator-v2)修改而来。
 
-### ✨ 主要改进
+### ✍️ 本分支新增改动
+
+1. **支持部署到 Cloudflare Pages**：
+   - `vite.config.ts` 依据 `CF_PAGES` 环境变量自动选择资源基础路径（Cloudflare 根路径 `/`，GitHub Pages 子路径 `/lostark-arkgrid-gem-locator-v2/`），两种平台均可一键部署而无需手动改配置
+   - 修复了根路径部署下精灵图资源 URL 拼接错误（`//` 双斜杠导致资源加载失败）的问题
+   - 详细部署步骤见 [部署到 Cloudflare Pages](#部署到-cloudflare-pages)
+
+### ⭐ 继承自上游的改进
+
+以下改进来自中文本地化上游分支，并非本分支新增：
 
 1. **新增服务器支持**：
    - 🇨🇳 **国服支持**（简体中文）
@@ -90,7 +99,7 @@ A: 尝试调整核心最小点数设置，或确保所有护石都已正确识�
 - **求解器**: 带有上界剪枝的自定义回溯算法 (TypeScript)
 - **前端**: Svelte 5 (基于组件的 UI，本地状态持久化)
 - **图像处理**: OpenCV.js (模板匹配，Web Worker)
-- **部署**: GitHub Pages (纯客户端)
+- **部署**: GitHub Pages / Cloudflare Pages (纯客户端)
 
 ---
 
@@ -148,15 +157,67 @@ export const zhCnCoords = {
 
 ---
 
+## 部署到 Cloudflare Pages
+
+本项目是纯客户端应用，构建产物为 `dist/` 静态目录，可直接部署到 Cloudflare Pages。
+
+> ⚙️ **路径适配说明**：`vite.config.ts` 会依据 `CF_PAGES` 环境变量自动选择资源基础路径。Cloudflare Pages 构建时默认注入 `CF_PAGES=1`，产物将使用根路径 `/`；本地构建或 GitHub Pages 构建则采用仓库子路径 `/lostark-arkgrid-gem-locator-v2/`。因此无需手动修改配置。
+
+### 方式一：通过 Git 集成部署（推荐）
+
+1. 将本仓库推送到你的 GitHub 账号（如 `yourname/lostark-arkgrid-gem-locator-v2`）
+2. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **创建** → **Pages** → **连接到 Git**
+3. 授权并选择该仓库，填写构建设置：
+   - Framework preset：选择 **Vite**
+   - Build command：`pnpm install && pnpm build`
+   - Build output directory：`dist`
+4. 点击 **保存并部署**，稍等片刻即可通过 `https://<项目名>.pages.dev` 访问
+
+### 方式二：使用 Wrangler CLI 部署
+
+```bash
+# 安装依赖并构建（CLI 部署时需手动设置 CF_PAGES=1）
+pnpm install
+npx wrangler login
+
+# Windows (PowerShell)
+$env:CF_PAGES = "1"
+pnpm build
+
+# macOS / Linux
+# CF_PAGES=1 pnpm build
+
+npx wrangler pages deploy dist --project-name=<你的项目名>
+```
+
+### 部署后验证
+
+部署完成后建议检查以下资源是否可正常访问（将域名替换为你的实际地址）：
+
+- `https://<你的域名>/` → 返回 HTML 页面
+- `https://<你的域名>/assets/index-*.js` → 返回 `application/javascript`
+- `https://<你的域名>/opencv_template_ko_kr_*.png` → 返回精灵图
+
+若页面空白或提示"분석 엔진을 준비하는데 실패하였습니다"，请确认：
+1. 构建环境中 `CF_PAGES` 已被设置为 `1`（Git 集成部署会自动注入）
+2. 所有资源路径均以 `/` 开头，而非项目子路径
+
+---
+
 ## 许可证
 
-MIT License
+本项目遵循 [MIT License](license.txt)。
+
+> 注意：根据 `license.txt` 的约定，本许可证仅适用于作者创建的源代码与原创内容；所有与游戏相关的素材（图片、图标等）版权归其各自所有者所有。
 
 ---
 
 ## 原项目
 
-原始项目地址：[https://github.com/Airplaner/lostark-arkgrid-gem-locator-v2](https://github.com/Airplaner/lostark-arkgrid-gem-locator-v2)
+本项目是基于以下上游项目修改而来：
+
+- 原始项目（韩服）: [Airplaner/lostark-arkgrid-gem-locator-v2](https://github.com/Airplaner/lostark-arkgrid-gem-locator-v2)
+- 中文支持版: [symnetry/lostark-arkgrid-gem-locator-v2](https://github.com/symnetry/lostark-arkgrid-gem-locator-v2)
 
 ---
 
