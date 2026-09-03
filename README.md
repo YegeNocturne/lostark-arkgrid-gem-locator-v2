@@ -169,9 +169,11 @@ export const zhCnCoords = {
 2. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages** → **创建** → **Pages** → **连接到 Git**
 3. 授权并选择该仓库，填写构建设置：
    - Framework preset：选择 **Vite**
+   - Root directory：`/`（仓库根目录，默认值）
    - Build command：`pnpm install && pnpm build`
    - Build output directory：`dist`
 4. 点击 **保存并部署**，稍等片刻即可通过 `https://<项目名>.pages.dev` 访问
+
 
 ### 方式二：使用 Wrangler CLI 部署
 
